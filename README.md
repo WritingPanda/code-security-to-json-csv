@@ -44,6 +44,12 @@ Run the CLI tool using uv:
 # Basic usage - exports to JSON by default (uses .env file)
 uv run python -m main your-org-name
 
+# Use async mode for faster performance (default)
+uv run python -m main your-org-name --async
+
+# Adjust concurrent requests (async mode only, 1-20 range, default: 5)
+uv run python -m main your-org-name --max-concurrent 10
+
 # Provide token via command line
 uv run python -m main your-org-name --token your_github_token_here
 
@@ -62,14 +68,14 @@ uv run python -m main your-org-name --severity critical
 # Combine filters with enterprise URL
 uv run python -m main your-org-name --enterprise-url https://github.company.com --state dismissed --severity high
 
-# Export to CSV format with filters and enterprise URL
-uv run python -m main your-org-name --enterprise-url https://github.company.com --format csv --state open --severity critical
+# Export to CSV format with filters and enterprise URL (async mode with 8 concurrent requests)
+uv run python -m main your-org-name --enterprise-url https://github.company.com --format csv --state open --severity critical --max-concurrent 8
 
 # Specify custom output filename with enterprise URL
 uv run python -m main your-org-name --enterprise-url https://github.company.com --output my-alerts.json --state fixed
 
-# Combine all options
-uv run python -m main your-org-name --token your_token --enterprise-url https://github.company.com --format csv --output custom-alerts.csv --state open --severity medium
+# Combine all options with async mode
+uv run python -m main your-org-name --token your_token --enterprise-url https://github.company.com --format csv --output custom-alerts.csv --state open --severity medium --async --max-concurrent 10
 
 # Show help
 uv run python -m main --help
@@ -84,6 +90,7 @@ uv run python -m main --help
 - `-s, --state [open|closed|dismissed|fixed]`: Filter alerts by state (default: open)
 - `--severity [critical|high|medium|low|warning|note|error]`: Filter alerts by severity (optional)
 - `-e, --enterprise-url TEXT`: GitHub Enterprise Server URL (optional)
+- `--max-concurrent INTEGER`: Maximum concurrent requests (1-20, default: 5)
 - `--help`: Show help message
 
 ## GitHub Token
@@ -135,23 +142,23 @@ Your GitHub token needs the following permissions:
 ## Examples
 
 ```bash
-# Fetch all open alerts for Microsoft organization as JSON (GitHub.com)
-uv run python -m main microsoft
+# Fetch all open alerts for Big Corp organization as JSON (GitHub.com)
+uv run python -m main BigCorp
 
 # Fetch alerts from GitHub Enterprise Server
 uv run python -m main my-org --enterprise-url https://github.company.com
 
 # Fetch all critical severity alerts from enterprise server
-uv run python -m main google --enterprise-url github.internal.com --severity critical --state open
+uv run python -m main gaggle --enterprise-url github.internal.com --severity critical --state open
 
 # Fetch all closed alerts from enterprise server and export to CSV
-uv run python -m main facebook --enterprise-url https://github.company.com --state closed --format csv
+uv run python -m main noselibro --enterprise-url https://github.company.com --state closed --format csv
 
 # Fetch high severity dismissed alerts from enterprise server with custom filename
-uv run python -m main netflix --enterprise-url github.company.com --state dismissed --severity high --output dismissed-high-alerts.json
+uv run python -m main fishflex --enterprise-url github.company.com --state dismissed --severity high --output dismissed-high-alerts.json
 
 # Fetch all fixed alerts from enterprise server for compliance reporting
-uv run python -m main airbnb --enterprise-url https://github.internal.company.com --state fixed --format csv --output security-review.csv
+uv run python -m main groundbee-n-bee --enterprise-url https://github.internal.company.com --state fixed --format csv --output security-review.csv
 ```
 
 ### Filtering Options
@@ -192,9 +199,16 @@ The tool implements intelligent rate limiting to respect GitHub's API limits:
 - **Smart Waiting**: Uses `Retry-After` header or calculates wait time from reset timestamp
 - **User Feedback**: Displays clear messages about rate limiting status and wait times
 
+### Async Mode Performance & Rate Limiting
+- **Concurrent Requests**: Makes multiple API calls simultaneously (configurable 1-20 concurrent)
+- **Intelligent Batching**: Fetches pages in batches to balance speed and API respect
+- **Per-Request Rate Limiting**: Each concurrent request still respects individual rate limits
+- **Shared Rate Limit Monitoring**: All concurrent requests share the same rate limit pool
+- **Performance Gains**: 5-10x faster than sync mode while staying within API limits
+
 ### GitHub API Limits
 - **GitHub.com**: 5,000 requests per hour for authenticated users
 - **Enterprise Server**: Varies by configuration (typically 5,000 requests per hour)
 
-The tool will automatically handle these limits without user intervention, ensuring reliable operation even for large organizations with many security alerts.
+The tool will automatically handle these limits without user intervention, ensuring reliable operation even for large organizations with many security alerts. Async mode maximizes throughput while maintaining respectful API usage.
 

@@ -4,13 +4,16 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = ["python-dotenv>=1.1.1", "requests>=2.32.4", "click>=8.1.7"]
+dependencies = [
+    "python-dotenv>=1.1.1",
+    "requests>=2.32.4",
+    "click>=8.1.7",
+    "aiohttp>=3.10.0",
+    "aiofiles>=24.1.0",
+]
 
 [project.scripts]
 ghas-alerts = "main:main"
 
 [dependency-groups]
-dev = [
-    "black>=25.1.0",
-    "pytest>=8.4.1",
-]
+dev = ["black>=25.1.0", "pytest>=8.4.1", "pytest-asyncio>=0.24.0"]
